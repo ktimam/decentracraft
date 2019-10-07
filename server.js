@@ -49,26 +49,29 @@ app.get('/accounts', function (req, res) {
 
 // Get Non fungible items belonging to user address
 app.post('/userFungible', async function (req, res) {
-    // console.log("Entering userFungible");
+    console.log("Entering userFungible");
     var player = req.body.player;
-    var accounts = await Contracts.web3.eth.getAccounts();
-    var user1 = accounts[0];
+    // var accounts = await Contracts.web3.eth.getAccounts();
+    var user1 = Contracts.ownerAccount;//accounts[0];
     //console.log("Account 0 = " + user1);
 
-    var mainContract = await Contracts.Decentracraft.deployed();
-    var dciContract = await Contracts.DecentracraftItem.deployed();
+    var mainContract = await Contracts.Decentracraft;//.deployed();
+    var dciContract = await Contracts.DecentracraftItem;//.deployed();
 
     var tokensjson = {
         tokens: []
     };
-    var length = await mainContract.getItemIDsLength();
-    // console.log("items length = " + length);
+    // var length = await mainContract.getItemIDsLength();
+    
+    var length = await mainContract.methods.getItemIDsLength().call(); 
+
+    console.log("items length = " + length);
     for(var i=0; i < length; i++){
-        var dciid = await mainContract.itemIDs(i);
-        var isfungible = await mainContract.isFungible(dciid);
+        var dciid = await mainContract.methods.itemIDs(i).call();
+        var isfungible = await mainContract.methods.isFungible(dciid).call();
         if(isfungible){
             console.log("id = " + dciid);
-            var balance = await mainContract.balanceOf(player, dciid);
+            var balance = await mainContract.methods.balanceOf(player, dciid).call();
             console.log("balance = " + balance);
             if(balance > 0)
             {
@@ -152,29 +155,24 @@ app.post('/mintNonFungible', async function (req, res) {
 // Mint fungible tokens for user
 app.post('/mintFungible', async function (req, res) {    
     console.log("Entering mintFungible");
-    var accounts = await Contracts.web3.eth.getAccounts();
+    // var accounts = await Contracts.web3.eth.getAccounts();
     var user1 = Contracts.ownerAccount;//accounts[0];
     //console.log("Account 0 = " + user1);
 
-    var mainContract = await Contracts.Decentracraft.deployed();
-    var dciContract = await Contracts.DecentracraftItem.deployed();
+    var mainContract = await Contracts.Decentracraft;//.deployed();
+    var dciContract = await Contracts.DecentracraftItem;//.deployed();
 
     var player = req.body.player;
     var itemid = req.body.itemid;
     var value  = req.body.value;
 
-    // var tx1 = await mainContract.create('', false, {from: user1});
-    // for (let l of tx1.logs) {
-    //     if (l.event === 'TransferSingle') {
-    //         itemid = l.args._id;
-    //         console.log("itemid = " + itemid);
-    //     }
-    // }
-
-    var tx = await mainContract.mintFungible(itemid, [player], [value], {from: user1});
+    // var tx = await mainContract.mintFungible(itemid, [player], [value], {from: user1});
+    
+    const contractFunction = await mainContract.methods.mintFungible(itemid, [player], [value]);//, {from: user1.address}); 
+    var result = await Contracts.sendTransaction(mainContract, contractFunction);    
 
     res.json({
-        transaction: tx
+        transaction: result
     });
 });
 

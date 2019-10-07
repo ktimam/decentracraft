@@ -86,12 +86,12 @@ async function sendTransaction(contract, contractFunction){
     // nonce = nonce.toString(16);    
     console.log("Nonce: " + nonce);
 
-    let estimatedGas = 51314;//web3.utils.toHex("100314");//await contractFunction.estimateGas({"from": ownerAccount.address, "nonce": nonce});
+    let estimatedGas = await contractFunction.estimateGas({"from": ownerAccount.address, "nonce": nonce});
     // estimatedGas = estimatedGas.toString(16);
     // estimatedGas = estimatedGas * 7;
     console.log("Estimated Gas: " + estimatedGas);
 
-    let gasPrice = "0x2540BE400";//web3.utils.toHex("5000500000");//await web3.eth.getGasPrice();//2000000000
+    let gasPrice = await web3.eth.getGasPrice();//2000000000
     // gasPrice = gasPrice.toString(10);
     // gasPrice = web3.utils.fromWei(gasPrice,"gwei") * 8;
     console.log("Gas Price : " + gasPrice); 
@@ -100,10 +100,10 @@ async function sendTransaction(contract, contractFunction){
 
     const txParams = {
         chainId: networkId,
-        // "gasPrice": gasPrice,//gasPrice,//web3.utils.toHex('10000000000'),'0x09184e72a000'
-        // "gasLimit": estimatedGas,//estimatedGas,//web3.utils.toHex('4000000'),3000000,
-        "gasPrice": web3.utils.toHex('20000000000'),
-        "gasLimit": web3.utils.toHex('56000'),
+        "gasPrice": web3.utils.toHex(gasPrice),//gasPrice,//web3.utils.toHex('10000000000'),'0x09184e72a000'
+        "gasLimit": web3.utils.toHex(estimatedGas),//estimatedGas,//web3.utils.toHex('4000000'),3000000,
+        //"gasPrice": web3.utils.toHex('20000000000'),
+        //"gasLimit": web3.utils.toHex('56000'),
         "data": functionABI,
         "to": contract._address,//"0x34bc4C9670B6e7686D22F364f2b45454C7EdF0fA",//"0x0000000000000000000000000000000000000000",//contract._address.toString(),
         // from: ownerAccount.address,
