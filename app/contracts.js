@@ -1,8 +1,9 @@
 const Web3 = require('web3'); 
 const Tx = require('ethereumjs-tx').Transaction;
 //const HDWalletProvider = require("@truffle/hdwallet-provider");
-const HDWalletProvider = require('truffle-hdwallet-provider');
+// const HDWalletProvider = require('truffle-hdwallet-provider');
 const Contract = require('truffle-contract');
+const LogDecoder = require('./utils/eth-decoder/log-decoder');
 const fs = require('fs');
 const commandLineArgs = require('command-line-args')
 const options = commandLineArgs([
@@ -13,18 +14,23 @@ console.log("Retreiving contract info");
 
 if (!options.rpc || options.rpc.length <= 0)
     throw "RPC endpoint missing";
-
+ 
 var privateKey = fs.readFileSync(".secret").toString().trim();
 
 //var provider = new Web3.providers.HttpProvider(options.rpc);
 var provider = new Web3.providers.WebsocketProvider(options.rpc);
 // var provider = new HDWalletProvider(privateKey, options.rpc)
-var web3 = new Web3(provider);
+
+   
+const web3options = {
+    transactionConfirmationBlocks: 1
+    }
+var web3 = new Web3(provider);//, null, web3options);
 
 exports.web3 = web3;
 
 var ownerAccount = web3.eth.accounts.privateKeyToAccount(privateKey);
-console.log(ownerAccount.address);
+// console.log(ownerAccount.address);
 
 exports.ownerAccount = ownerAccount;
 
@@ -35,6 +41,8 @@ let zeroAddress = '0x0000000000000000000000000000000000000000';
 
 const buildPath = "./build/contracts/";
 
+var abis = [];
+
 exports.loadContracts = async function loadContracts(){
     networkId = await web3.eth.net.getId();
     // networkName = await web3.eth.net.getName();
@@ -43,6 +51,7 @@ exports.loadContracts = async function loadContracts(){
     fs.readdirSync(buildPath).forEach(async abiFile => {
         if (abiFile.split(".")[1] !== "json") { return; }
         const contractABI = require("." + buildPath + abiFile);
+        abis.push(contractABI.abi);
 
         if(contractABI.contractName != "Decentracraft" && contractABI.contractName != "DecentracraftItem"){
             //Contract is not deployed
@@ -78,15 +87,14 @@ exports.loadContracts = async function loadContracts(){
     });
 }
 
-
-async function sendTransaction(contract, contractFunction){
+async function sendTransaction(contract, contractFunction, value="0"){
     
     // console.log("Sending Transaction");
     let nonce = await web3.eth.getTransactionCount(ownerAccount.address);
     // nonce = nonce.toString(16);    
     console.log("Nonce: " + nonce);
 
-    let estimatedGas = await contractFunction.estimateGas({"from": ownerAccount.address, "nonce": nonce});
+    let estimatedGas = await contractFunction.estimateGas({"from": ownerAccount.address, value: web3.utils.toWei(value,"ether"), "nonce": nonce});
     // estimatedGas = estimatedGas.toString(16);
     // estimatedGas = estimatedGas * 7;
     console.log("Estimated Gas: " + estimatedGas);
@@ -107,7 +115,8 @@ async function sendTransaction(contract, contractFunction){
         "data": functionABI,
         "to": contract._address,//"0x34bc4C9670B6e7686D22F364f2b45454C7EdF0fA",//"0x0000000000000000000000000000000000000000",//contract._address.toString(),
         // from: ownerAccount.address,
-        "value": "0x0",//web3.utils.toHex(web3.utils.toWei("0.1","ether")),
+        // "value": "0x0",//web3.utils.toHex(web3.utils.toWei("0.1","ether")),
+        "value": web3.utils.toHex(web3.utils.toWei(value,"ether")),
         "nonce": '0x' + nonce.toString(16)
     };
     
@@ -117,10 +126,21 @@ async function sendTransaction(contract, contractFunction){
 
     const serializedTx = tx.serialize();
 
-    let receipt = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));//, {from: ownerAccount.address});//, value: web3.utils.toHex(web3.utils.toWei("0.1","ether"))});
+    // await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
+    //         // .on('confirmation', function(confNumber, receipt){
+    //         .then(function(receipt){
+    //     console.log(receipt);
+    //     return receipt;
+    // })
+
     // let receipt = await web3.eth.sendTransaction(tx, {from: ownerAccount.address, value: web3.utils.toHex(web3.utils.toWei("0.1","ether"))});
-    console.log(receipt);
-    return receipt;
+
+    let receipt = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));//, {from: ownerAccount.address});//, value: web3.utils.toHex(web3.utils.toWei("0.1","ether"))});    
+    // var txinfo = await web3.eth.getTransactionFromBlock(receipt.blockNumber,receipt.transactionIndex);
+    const txdecoder = new LogDecoder.LogDecoder(abis);
+    const parsedLogs = txdecoder.decodeLogs(receipt.logs);
+    console.log(parsedLogs);
+    return parsedLogs;
 }
 
 exports.sendTransaction = sendTransaction;

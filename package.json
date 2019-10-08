@@ -12,10 +12,11 @@
     "bignumber.js": "^4.1.0",
     "command-line-args": "^5.1.1",
     "cors": "^2.8.5",
+    "eth-decoder": "0.0.1-beta.2",
+    "ethers": "^4.0.37",
     "truffle-artifactor": "^4.0.30",
     "truffle-contract": "^4.0.31",
-    "truffle-hdwallet-provider": "^1.0.17",
-    "web3": "1.2.1"
+    "truffle-hdwallet-provider": "^1.0.17"
   },
   "devDependencies": {
     "@babel/core": "^7.4.0",

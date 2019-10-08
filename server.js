@@ -90,25 +90,25 @@ app.post('/userFungible', async function (req, res) {
 // Get Non fungible items belonging to user address
 app.post('/userNonFungible', async function (req, res) {
     var player = req.body.player;
-    var accounts = await Contracts.web3.eth.getAccounts();
-    var user1 = accounts[0];
+    // var accounts = await Contracts.web3.eth.getAccounts();
+    var user1 = Contracts.ownerAccount;//accounts[0];
     //console.log("Account 0 = " + user1);
 
-    var mainContract = await Contracts.Decentracraft.deployed();
-    var dciContract = await Contracts.DecentracraftItem.deployed();
+    var mainContract = await Contracts.Decentracraft;//.deployed();
+    var dciContract = await Contracts.DecentracraftItem;//.deployed();
 
     var nftokensjson = {
         nftokens: []
     };
-    var length = await mainContract.getItemIDsLength();
+    var length = await mainContract.methods.getItemIDsLength().call();
     // console.log("items length = " + length);
     for(var i=0; i < length; i++){
-        var dciid = await mainContract.itemIDs(i);
+        var dciid = await mainContract.methods.itemIDs(i).call();
         // console.log("id = " + dciid);
-        var owner = await mainContract.nfOwners(dciid);
+        var owner = await mainContract.methods.nfOwners(dciid).call();
         // console.log("nfOwners = " + owner);
         if(owner == player){
-            var dcitemstruct = await dciContract.dcItems(dciid);
+            var dcitemstruct = await dciContract.methods.dcItems(dciid).call();
             //console.log(dcitemstruct);
             var attributeshash = await dcitemstruct.attributesStorageHash;
             var dciuri = dcitemstruct.uri;
@@ -126,29 +126,37 @@ app.post('/userNonFungible', async function (req, res) {
 
 // Mint Nonfungible tokens for user
 app.post('/mintNonFungible', async function (req, res) {
-    var accounts = await Contracts.web3.eth.getAccounts();
-    var user1 = accounts[0];
+    // var accounts = await Contracts.web3.eth.getAccounts();
+    var user1 = Contracts.ownerAccount;//accounts[0];
     //console.log("Account 0 = " + user1);
 
-    var mainContract = await Contracts.Decentracraft.deployed();
-    var dciContract = await Contracts.DecentracraftItem.deployed();
+    var mainContract = await Contracts.Decentracraft;//.deployed();
+    var dciContract = await Contracts.DecentracraftItem;//.deployed();
 
     var player = req.body.player;
     var uri = 'https://metadata.enjincoin.io/hammer.json';
     var attributes = '{"attack": "6","defense": "1","speed": "1"}';
 
-    var tx1 = await mainContract.create(uri, true, {from: user1});
+    // var tx1 = await mainContract.create(uri, true, {from: user1});
+    
+    const contractFunction = await mainContract.methods.create(uri, true);//, {from: user1.address}); 
+    var logs1 = await Contracts.sendTransaction(mainContract, contractFunction);    
+
     var typeID;
-    for (let l of tx1.logs) {
+    for (let l of logs1) {
         if (l.event === 'TransferSingle') {
             typeID = l.args._id;
         }
     }
-    var tx2 = await mainContract.mintNonFungible(typeID, [player], uri, attributes, {from: user1, value: Contracts.web3.utils.toWei("0.1","ether")});
-    var event = await waitForEvent(dciContract.LogIPFSHashReceived);
+    // var tx2 = await mainContract.mintNonFungible(typeID, [player], uri, attributes, {from: user1, value: Contracts.web3.utils.toWei("0.1","ether")});
+    // var event = await waitForEvent(dciContract.LogIPFSHashReceived);
+    
+    const contractFunction2 = await mainContract.methods.mintNonFungible(typeID, [player], uri, attributes);//, {from: user1.address}); 
+    var logs2 = await Contracts.sendTransaction(mainContract, contractFunction2, "0.1");    
+    var event = await waitForEvent(dciContract.events.LogIPFSHashReceived);
     res.json({
-        transaction1: tx1,
-        transaction2: tx2
+        transaction1: logs1,
+        transaction2: logs2
     });
 });
 
@@ -194,7 +202,7 @@ app.get('/creates5cr5t', async function (req, res) {
     const contractFunction = await mainContract.methods.create('', false);//, {from: user1.address}); 
     var result = await Contracts.sendTransaction(mainContract, contractFunction);
     
-    for (let l of result.logs) {
+    for (let l of result) {
         if (l.event === 'TransferSingle') {
             itemid = l.args._id;
             console.log("itemid = " + itemid);
