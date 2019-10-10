@@ -1,8 +1,10 @@
 const Web3 = require('web3');
 const express = require('express');
+const https = require('https');
 const next = require('next')
 var bodyParser = require('body-parser');
 const cors = require('cors');
+const fs = require('fs');
 const { waitForEvent } = require('./test/helpers/utils');
 
 const Contracts = require('./app/contracts.js');
@@ -22,6 +24,7 @@ const Contracts = require('./app/contracts.js');
 //   .deployed()
 
 const port = process.env.PORT || 80;
+console.log("Listening to port : " + port);
 
 // const app = express();
 // app.use(bodyParser.json());
@@ -38,7 +41,14 @@ const port = process.env.PORT || 80;
 const server = express();    
 server.use(bodyParser.json());
 server.use(cors());
-server.listen(port);
+// server.listen(port);
+
+https.createServer({
+    key: fs.readFileSync('./keys/privkey.pem'),
+    cert: fs.readFileSync('./keys/fullchain.pem')
+    // passphrase: 'passphrase'
+}, server)
+.listen(port);
 
 Contracts.loadContracts();
 
