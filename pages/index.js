@@ -1,5 +1,9 @@
-function Home() {
-    return "<div>Welcome to Next.js!</div>";
-  }
-  
-  export default Home
+
+const Home = () => (
+  <div>
+      <title>Home</title>
+      <link rel='icon' href='/favicon.ico' />
+  </div>
+)
+
+export default Home

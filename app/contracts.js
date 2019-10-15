@@ -1,24 +1,25 @@
 const Web3 = require('web3'); 
 const Tx = require('ethereumjs-tx').Transaction;
-//const HDWalletProvider = require("@truffle/hdwallet-provider");
 // const HDWalletProvider = require('truffle-hdwallet-provider');
 const Contract = require('truffle-contract');
-const LogDecoder = require('./utils/eth-decoder/log-decoder');
+const LogDecoder = require(__dirname + '/utils/eth-decoder/log-decoder');
 const fs = require('fs');
-const commandLineArgs = require('command-line-args')
-const options = commandLineArgs([
-    { name: 'rpc', alias: 'r', type: String }
-]);
+// const commandLineArgs = require('command-line-args')
+// const options = commandLineArgs([
+//     { name: 'rpc', alias: 'r', type: String }
+// ]);
 
+// if (!options.rpc || options.rpc.length <= 0)
+//     throw "RPC endpoint missing";
+ 
 console.log("Retreiving contract info");
 
-if (!options.rpc || options.rpc.length <= 0)
-    throw "RPC endpoint missing";
- 
-var privateKey = fs.readFileSync(".secret").toString().trim();
+// var privateKey = fs.readFileSync("./.secret").toString().trim();
+var privateKey = process.env.privatekey;
+// console.log("privateKey = " + privateKey);
 
 //var provider = new Web3.providers.HttpProvider(options.rpc);
-var provider = new Web3.providers.WebsocketProvider(options.rpc);
+var provider = new Web3.providers.WebsocketProvider(process.env.rpc);
 // var provider = new HDWalletProvider(privateKey, options.rpc)
 
    
@@ -39,24 +40,35 @@ var networkName;
 
 let zeroAddress = '0x0000000000000000000000000000000000000000';
 
-const buildPath = "./build/contracts/";
+const buildPath = __dirname + "/../build/contracts/";
+console.log("buildPath = " + buildPath);
+
+const buildFiles = fs.readdirSync(buildPath);
+console.log("buildFiles = " + buildFiles + " size = " + buildFiles.length);
 
 var abis = [];
 
 exports.loadContracts = async function loadContracts(){
+    console.log("Entering loadContracts");
     networkId = await web3.eth.net.getId();
     // networkName = await web3.eth.net.getName();
     // console.log("networkName = " + networkName + " , networkId = " + networkId);
     // Load contracts from build
-    fs.readdirSync(buildPath).forEach(async abiFile => {
-        if (abiFile.split(".")[1] !== "json") { return; }
-        const contractABI = require("." + buildPath + abiFile);
+    // console.log("buildFiles size = " + buildFiles.length);
+    // buildFiles.forEach(abiFile => {
+    for(var i=0; i < buildFiles.length; i++){
+        var abiFile = buildFiles[i];
+        // console.log("abiFile = " + abiFile);
+        if (abiFile.split(".")[1] !== "json") { continue; }
+        const abiPath = buildPath + abiFile;
+        // console.log("abiPath = " + abiPath);
+        const contractABI = require(abiPath);
         abis.push(contractABI.abi);
 
         if(contractABI.contractName != "Decentracraft" && contractABI.contractName != "DecentracraftItem"){
             //Contract is not deployed
             // console.log("Contract " + contractABI.contractName + " is not deployed to network " + networkId);
-            return;
+            continue;
         }
         const deployedAddress = contractABI.networks[networkId].address;
         console.log("Contract " + contractABI.contractName + " address = " + deployedAddress);
@@ -84,38 +96,30 @@ exports.loadContracts = async function loadContracts(){
         
         //contractObj.detectNetwork();
         exports[abiFile.split(".")[0]] = contractObj;
-    });
+    }
 }
 
 async function sendTransaction(contract, contractFunction, value="0"){
     
     // console.log("Sending Transaction");
     let nonce = await web3.eth.getTransactionCount(ownerAccount.address);
-    // nonce = nonce.toString(16);    
     console.log("Nonce: " + nonce);
 
-    let estimatedGas = await contractFunction.estimateGas({"from": ownerAccount.address, value: web3.utils.toWei(value,"ether"), "nonce": nonce});
-    // estimatedGas = estimatedGas.toString(16);
-    // estimatedGas = estimatedGas * 7;
+    let estimatedGas = await contractFunction.estimateGas({"from": ownerAccount.address, value: web3.utils.toWei(value.toString(),"ether"), "nonce": nonce});
     console.log("Estimated Gas: " + estimatedGas);
 
-    let gasPrice = await web3.eth.getGasPrice();//2000000000
-    // gasPrice = gasPrice.toString(10);
-    // gasPrice = web3.utils.fromWei(gasPrice,"gwei") * 8;
+    let gasPrice = await web3.eth.getGasPrice();
     console.log("Gas Price : " + gasPrice); 
     
     const functionABI = await contractFunction.encodeABI();
 
     const txParams = {
         chainId: networkId,
-        "gasPrice": web3.utils.toHex(gasPrice),//gasPrice,//web3.utils.toHex('10000000000'),'0x09184e72a000'
-        "gasLimit": web3.utils.toHex(estimatedGas),//estimatedGas,//web3.utils.toHex('4000000'),3000000,
-        //"gasPrice": web3.utils.toHex('20000000000'),
-        //"gasLimit": web3.utils.toHex('56000'),
+        "gasPrice": web3.utils.toHex(gasPrice),
+        "gasLimit": web3.utils.toHex(estimatedGas),
         "data": functionABI,
-        "to": contract._address,//"0x34bc4C9670B6e7686D22F364f2b45454C7EdF0fA",//"0x0000000000000000000000000000000000000000",//contract._address.toString(),
+        "to": contract._address,
         // from: ownerAccount.address,
-        // "value": "0x0",//web3.utils.toHex(web3.utils.toWei("0.1","ether")),
         "value": web3.utils.toHex(web3.utils.toWei(value,"ether")),
         "nonce": '0x' + nonce.toString(16)
     };
@@ -126,17 +130,7 @@ async function sendTransaction(contract, contractFunction, value="0"){
 
     const serializedTx = tx.serialize();
 
-    // await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'))
-    //         // .on('confirmation', function(confNumber, receipt){
-    //         .then(function(receipt){
-    //     console.log(receipt);
-    //     return receipt;
-    // })
-
-    // let receipt = await web3.eth.sendTransaction(tx, {from: ownerAccount.address, value: web3.utils.toHex(web3.utils.toWei("0.1","ether"))});
-
     let receipt = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));//, {from: ownerAccount.address});//, value: web3.utils.toHex(web3.utils.toWei("0.1","ether"))});    
-    // var txinfo = await web3.eth.getTransactionFromBlock(receipt.blockNumber,receipt.transactionIndex);
     const txdecoder = new LogDecoder.LogDecoder(abis);
     const parsedLogs = txdecoder.decodeLogs(receipt.logs);
     console.log(parsedLogs);

@@ -19,4 +19,4 @@ COPY . .
 
 EXPOSE 80
 EXPOSE 90
-CMD [ "node", "server.js", "--rpc", "wss://ropsten.infura.io/ws/v3/963c4b374f2942338c281f97a61d8d98" ]
+CMD [ "node", "api/server.js", "--rpc", "wss://ropsten.infura.io/ws/v3/963c4b374f2942338c281f97a61d8d98" ]

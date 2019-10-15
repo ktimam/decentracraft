@@ -5,9 +5,9 @@ const next = require('next')
 var bodyParser = require('body-parser');
 const cors = require('cors');
 const fs = require('fs');
-const { waitForEvent } = require('./test/helpers/utils');
+const { waitForEvent } = require('../app/utils/utils');
 
-const Contracts = require('./app/contracts.js');
+const Contracts = require('../app/contracts.js');
 
 // const Decentracraft = artifacts.require('Decentracraft.sol');
 // const DecentracraftItem = artifacts.require('DecentracraftItem.sol');
@@ -42,6 +42,8 @@ const server = express();
 server.use(bodyParser.json());
 server.use(cors());
 // server.listen(port);
+
+// server.use(express.static(__dirname + '/build/contracts/'));
 
 https.createServer({
     key: fs.readFileSync('./keys/privkey.pem'),
