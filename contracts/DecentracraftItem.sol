@@ -1,14 +1,14 @@
 pragma solidity ^0.5.11;
 pragma experimental ABIEncoderV2;
 
-import "./provableAPI.sol";
+import "./Utils/Ownable.sol";
+import "./Utils/provableAPI.sol";
 
 /**
     @dev DecentracraftItem
 */
-contract DecentracraftItem is usingProvable  {
+contract DecentracraftItem is Ownable, usingProvable  {
 
-    address public owner;
     string public IPFSUploaderHash;
     mapping(bytes32=>uint256) validIds;
     event LogConstructorInitiated(string nextStep);
@@ -23,11 +23,6 @@ contract DecentracraftItem is usingProvable  {
         return dcItems[_id];
     }
  
-
-    modifier ownerOnly() {
-      if (msg.sender == owner) _;
-    }
-
     struct DecentracraftItemStruct
     {
         string uri;
@@ -37,7 +32,6 @@ contract DecentracraftItem is usingProvable  {
     }
 
     constructor () public payable  {
-        owner = msg.sender;
         
         IPFSUploaderHash = "json(QmRGYcLzFhLqBaVVBcMdQmF25XCSCA7i6KgfiWtp5Mfn9Y).Hash";
         
@@ -61,7 +55,7 @@ contract DecentracraftItem is usingProvable  {
         delete validIds[_myid];
     }
 
-    function addDCI(uint256 _id, string calldata _uri, string calldata _attributesJSON) external payable {
+    function addDCI(uint256 _id, string calldata _uri, string calldata _attributesJSON) external payable ownerOnly{
         if (provable_getPrice("computation") > address(this).balance) {
           emit LogNewProvableQuery("Provable query was NOT sent, please add some ETH to cover for the query fee");
         } else {

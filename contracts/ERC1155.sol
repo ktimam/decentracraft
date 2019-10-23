@@ -5,10 +5,14 @@ import "./Address.sol";
 import "./Common.sol";
 import "./IERC1155TokenReceiver.sol";
 import "./IERC1155.sol";
+import "./Utils/Ownable.sol";
 
 // A sample implementation of core ERC1155 function.
-contract ERC1155 is IERC1155, ERC165, CommonConstants
+contract ERC1155 is IERC1155, ERC165, CommonConstants, Ownable
 {
+    constructor () public payable  {
+    }
+
     using SafeMath for uint256;
     using Address for address;
 

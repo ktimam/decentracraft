@@ -1,38 +1,50 @@
 pragma solidity ^0.5.11;
 
 import "./DecentracraftItem.sol";
-import "./ERC1155MixedFungibleMintable.sol";
+import "./ERC1155MixedFungible.sol";
 
 /**
     @dev Mintable form of ERC1155
     Shows how easy it is to mint new items
 */
-contract Decentracraft is ERC1155MixedFungibleMintable  {
-
-    address public owner;
-    event LogConstructorInitiated(string nextStep);
-    event LogNewProvableQuery(string description);
-    event LogIPFSHashReceived(string hash);
+contract Decentracraft is ERC1155MixedFungible  {
 
     DecentracraftItem public decentracraftItem;
 
-    modifier ownerOnly() {
-      if (msg.sender == owner) _;
+    constructor (DecentracraftItem _dcItem) public payable  {        
+        decentracraftItem = _dcItem;
     }
 
-    constructor (DecentracraftItem _dcItem) public payable  {
-        owner = msg.sender;
-        
-        decentracraftItem = _dcItem;//new DecentracraftItem();
+    uint256 nonce;
+    // mapping (uint256 => address) public creators;
+    mapping (uint256 => uint256) public maxIndex;
+
+    // modifier creatorOnly(uint256 _id) {
+    //     require(creators[_id] == msg.sender);
+    //     _;
+    // }
+
+    // This function only creates the type.
+    function create(string memory _uri, bool   _isNF) public ownerOnly returns(uint256 _type) {
+        // Store the type in the upper 128 bits
+        _type = (++nonce << 128);
+
+        // Set a flag if this is an NFI.
+        if (_isNF)
+          _type = _type | TYPE_NF_BIT;
+
+        // This will allow restricted access to creators.
+        // creators[_type] = msg.sender;
+
+        // emit a Transfer event with Create semantic to help with discovery.
+        emit TransferSingle(msg.sender, address(0x0), address(0x0), _type, 0);
+
+        if (bytes(_uri).length > 0)
+            emit URI(_uri, _type);
     }
 
-    modifier creatorOnly(uint256 _id) {
-        require(creators[_id] == msg.sender);
-        _;
-    }
-
-    function mintNonFungible(uint256 _type, address[] calldata _to, 
-                string calldata _uri, string calldata _attributesJSON) external payable /* creatorOnly(_type) */ {
+    function mintNonFungible(uint256 _type, address[] memory _to, 
+                string memory _uri, string memory _attributesJSON) public payable ownerOnly /* creatorOnly(_type) */ {
 
         // No need to check this is a nf type rather than an id since
         // creatorOnly() will only let a type pass through.
@@ -64,7 +76,7 @@ contract Decentracraft is ERC1155MixedFungibleMintable  {
         }
     }
 
-    function mintFungible(uint256 _id, address[] calldata _to, uint256[] calldata _quantities) external /* creatorOnly(_id) */ {
+    function mintFungible(uint256 _id, address[] memory _to, uint256[] memory _quantities) public ownerOnly /* creatorOnly(_id) */ {
 
         require(isFungible(_id));
 

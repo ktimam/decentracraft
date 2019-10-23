@@ -18,6 +18,20 @@
             //"internalConsoleOptions": "neverOpen",
             "args": ["--rpc", "wss://ropsten.infura.io/ws/v3/963c4b374f2942338c281f97a61d8d98"],
             // "address": "http://localhost/creates5cr5t"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Truffle Test",
+            "cwd": "${workspaceFolder}",
+            "program": "C:/Users/Alien/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/usr/lib/node_modules/truffle/build/cli.bundled.js",
+            "args": [
+                "test",
+                "./test/DecentracraftWorld.js",
+                "--network",
+                "remote"
+            ]
+
         }
         // {
         //     "type": "chrome",
