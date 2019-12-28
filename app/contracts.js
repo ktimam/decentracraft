@@ -65,7 +65,8 @@ exports.loadContracts = async function loadContracts(){
         const contractABI = require(abiPath);
         abis.push(contractABI.abi);
 
-        if(contractABI.contractName != "Decentracraft" && contractABI.contractName != "DecentracraftItem"){
+        if(contractABI.contractName != "DecentracraftWorld" && 
+        contractABI.contractName != "Decentracraft" && contractABI.contractName != "DecentracraftItem"){
             //Contract is not deployed
             // console.log("Contract " + contractABI.contractName + " is not deployed to network " + networkId);
             continue;

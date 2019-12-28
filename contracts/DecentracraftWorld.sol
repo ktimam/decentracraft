@@ -26,13 +26,36 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
     struct ResourcesPackageStruct
     {
         address owner;
-        uint256 price;        
+        uint256 price;
         uint256[] resourcesIDs;
         uint256[] supply;
         uint256[] NFTsIDs;
         string[]  NFTsJSON;
         string[]  NFTsURI;
         uint256[] NFTsProbability;
+    }
+
+    function getResourcesPackagesResourcesCount(uint256 _packageID) public view returns(uint) {
+        return resourcePackages[_packageID].resourcesIDs.length;
+    }
+
+    function getResourcesPackagesResource(uint256 _packageID, uint _resourceIndex) public view 
+                    returns(uint256 _resourceID, uint256 _resourceSupply) {
+        return (resourcePackages[_packageID].resourcesIDs[_resourceIndex], 
+                    resourcePackages[_packageID].supply[_resourceIndex]);
+    }
+
+    function getResourcesPackagesNFTsCount(uint256 _packageID) public view returns(uint) {
+        return resourcePackages[_packageID].NFTsIDs.length;
+    }
+
+    function getResourcesPackagesNFT(uint256 _packageID, uint _nftIndex) public view 
+                    returns(uint256 _nftID, uint256 _nftProbability, string memory _nftJSON
+                    , string memory _nftURI) {
+        return (resourcePackages[_packageID].NFTsIDs[_nftIndex], 
+                    resourcePackages[_packageID].NFTsProbability[_nftIndex], 
+                    resourcePackages[_packageID].NFTsJSON[_nftIndex], 
+                    resourcePackages[_packageID].NFTsURI[_nftIndex]);
     }
 
     //Resource packages to buy from
@@ -55,6 +78,14 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
     constructor (Decentracraft _decentracraft, IRandomGenerator _rng) public payable  { 
         decentracraft = _decentracraft;
         rng = _rng;
+    }
+
+    function getResourcePackagesIndex() public view returns(uint) {
+        return resourcePackagesIndex;
+    }
+
+    function getReservedPackagesIndex() public view returns(uint) {
+        return reservedPackagesIndex;
     }
 
     function create(string calldata _uri, bool   _isNF) external ownerOnly returns(uint256 _type) {
