@@ -35,6 +35,10 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
         uint256[] NFTsProbability;
     }
 
+    //Resource packages to buy from
+    uint resourcePackagesIndex = 0;
+    mapping (uint256 => ResourcesPackageStruct) public resourcePackages;
+
     function getResourcesPackagesResourcesCount(uint256 _packageID) public view returns(uint) {
         return resourcePackages[_packageID].resourcesIDs.length;
     }
@@ -58,13 +62,32 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
                     resourcePackages[_packageID].NFTsURI[_nftIndex]);
     }
 
-    //Resource packages to buy from
-    uint resourcePackagesIndex = 0;
-    mapping (uint256 => ResourcesPackageStruct) public resourcePackages;
-
     //Reserved packages
     uint reservedPackagesIndex = 0;
     mapping (uint256 => ResourcesPackageStruct) public reservedPackages;
+
+    function getReservedResourcesPackagesResourcesCount(uint256 _packageID) public view returns(uint) {
+        return reservedPackages[_packageID].resourcesIDs.length;
+    }
+
+    function getReservedResourcesPackagesResource(uint256 _packageID, uint _resourceIndex) public view 
+                    returns(uint256 _resourceID, uint256 _resourceSupply) {
+        return (reservedPackages[_packageID].resourcesIDs[_resourceIndex], 
+                    reservedPackages[_packageID].supply[_resourceIndex]);
+    }
+
+    function getReservedResourcesPackagesNFTsCount(uint256 _packageID) public view returns(uint) {
+        return reservedPackages[_packageID].NFTsIDs.length;
+    }
+
+    function getReservedResourcesPackagesNFT(uint256 _packageID, uint _nftIndex) public view 
+                    returns(uint256 _nftID, uint256 _nftProbability, string memory _nftJSON
+                    , string memory _nftURI) {
+        return (reservedPackages[_packageID].NFTsIDs[_nftIndex], 
+                    reservedPackages[_packageID].NFTsProbability[_nftIndex], 
+                    reservedPackages[_packageID].NFTsJSON[_nftIndex], 
+                    reservedPackages[_packageID].NFTsURI[_nftIndex]);
+    }
 
     mapping (uint256 => uint256) public dailySupply;
     mapping (uint256 => uint256) public dailyConsumed;
