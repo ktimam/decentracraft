@@ -8,14 +8,14 @@ const expectThrow = require("./helpers/expectThrow");
 const { waitForEvent } = require('../app/utils/utils')
 
 // const localProviderUrl = 'http://localhost:8545'
-const localProviderUrl = 'http://192.168.1.111:8545'
-const localProvider = new Web3.providers.WebsocketProvider(localProviderUrl)
+// const localProviderUrl = 'http://192.168.1.111:8545'
+// const localProvider = new Web3.providers.WebsocketProvider(localProviderUrl)
 
 const Decentracraft = artifacts.require('Decentracraft.sol');
 const DecentracraftWorld = artifacts.require('DecentracraftWorld.sol');
 const DecentracraftItem = artifacts.require('DecentracraftItem.sol');
 let MockRNG;
-if(process.env.NETWORK == "remote"){
+if(process.env.NETWORK != "ropsten"){
     MockRNG = artifacts.require('./Utils/MockRNG.sol');
 }
 const ERC1155MockReceiver = artifacts.require('ERC1155MockReceiver.sol');
@@ -199,16 +199,18 @@ contract('DecentracraftWorld - tests all core 1155 functionality.', (accounts) =
         tx = await mainContract.addResourcesPackage(web3.utils.toWei("0.5","ether"), [woodTypeID], [1000])
         let rsp_id = await  verifyResourcePackageCreated(tx, user1)
         // console.log("rsp_id = " + rsp_id)
-        await mainContract.setResourcesNFTsMeta(rsp_id, [hammerTypeID], [hammerAttributes], [hammerUri], [100000])
+        await mainContract.setResourcesNFTsMeta(rsp_id, [hammerTypeID], [hammerAttributes], [hammerUri], [100000], [100])
 
         //Reserve Resource Package
-        tx = await mainContract.reserveResources(rsp_id, {from: user2, value: web3.utils.toWei("0.5","ether")})
+        // tx = await mainContract.reserveResources(rsp_id, {from: user2, value: web3.utils.toWei("0.5","ether")})
+        tx = await mainContract.reserveResources(rsp_id, user2, {from: user1})//, {value: web3.utils.toWei("0.5","ether")})
 
         //Reward player
         tx = await mainContract.rewardPlayer(rsp_id, 1000, user3, {from: user2});
         await verifyFungibleOwnership(tx, mainContract.address, user3, woodTypeID, 1000);
-        if(process.env.NETWORK == "remote"){
-            await mockRNG.randomReceived(0, 1000, {from: user1});
+        if(process.env.NETWORK != "ropsten"){
+            tx = await mockRNG.randomReceived(1, 1000, {from: user1});
+            // console.log(tx)
         }
         await verifyNFOwnership(mainContract.address, user3, zeroAddress, 1, hammerUri, hammerAttributes);
     });

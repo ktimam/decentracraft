@@ -15,6 +15,7 @@ module.exports = function(deployer) {
   // await dcc.setOwner(dccworld);
 
   process.env.NETWORK = deployer.network;
+  
   // console.log("deployer.network = " + deployer.network);
 
   deployer.deploy(DecentracraftItem).then(function() {
@@ -27,7 +28,7 @@ module.exports = function(deployer) {
       instance.setOwner(Decentracraft.address);
     });
     console.log("Decentracraft = " + Decentracraft.address);
-    if(deployer.network == "remote"){
+    if(deployer.network != "ropsten"){
       return deployer.deploy(MockRNG);
     }
     else{
@@ -35,7 +36,7 @@ module.exports = function(deployer) {
     }
   }).then(function() {
     // console.log("Decentracraft = " + Decentracraft.address);
-    if(deployer.network == "remote"){
+    if(deployer.network != "ropsten"){
       console.log("MockRNG = " + MockRNG.address);
       return deployer.deploy(DecentracraftWorld, Decentracraft.address, MockRNG.address);
     }

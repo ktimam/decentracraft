@@ -15,6 +15,18 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
     Decentracraft decentracraft;
     IRandomGenerator rng;
 
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+
+    function withdraw() public ownerOnly {
+        //decentracraft.withdraw();
+        msg.sender.transfer(address(this).balance);
+    }
+
+    function () external payable {
+    }
+
     struct NFTRewardRequest{
         address _rewardedPlayer;
         uint256 _resourcePackageID;
@@ -28,11 +40,13 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
         address owner;
         uint256 price;
         uint256[] resourcesIDs;
-        uint256[] supply;
+        uint256[] originalSupply;
+        uint256[] currentSupply;
         uint256[] NFTsIDs;
         string[]  NFTsJSON;
         string[]  NFTsURI;
         uint256[] NFTsProbability;
+        uint256[] NFTsSupply;
     }
 
     //Resource packages to buy from
@@ -46,7 +60,7 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
     function getResourcesPackagesResource(uint256 _packageID, uint _resourceIndex) public view 
                     returns(uint256 _resourceID, uint256 _resourceSupply) {
         return (resourcePackages[_packageID].resourcesIDs[_resourceIndex], 
-                    resourcePackages[_packageID].supply[_resourceIndex]);
+                    resourcePackages[_packageID].originalSupply[_resourceIndex]);
     }
 
     function getResourcesPackagesNFTsCount(uint256 _packageID) public view returns(uint) {
@@ -54,10 +68,11 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
     }
 
     function getResourcesPackagesNFT(uint256 _packageID, uint _nftIndex) public view 
-                    returns(uint256 _nftID, uint256 _nftProbability, string memory _nftJSON
-                    , string memory _nftURI) {
+                    returns(uint256 _nftID, uint256 _nftProbability, uint256 _nftSupply, 
+                    string memory _nftJSON, string memory _nftURI) {
         return (resourcePackages[_packageID].NFTsIDs[_nftIndex], 
                     resourcePackages[_packageID].NFTsProbability[_nftIndex], 
+                    resourcePackages[_packageID].NFTsSupply[_nftIndex],
                     resourcePackages[_packageID].NFTsJSON[_nftIndex], 
                     resourcePackages[_packageID].NFTsURI[_nftIndex]);
     }
@@ -71,9 +86,10 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
     }
 
     function getReservedResourcesPackagesResource(uint256 _packageID, uint _resourceIndex) public view 
-                    returns(uint256 _resourceID, uint256 _resourceSupply) {
+                    returns(uint256 _resourceID, uint256 _resourceSupply, uint256 _originalSupply) {
         return (reservedPackages[_packageID].resourcesIDs[_resourceIndex], 
-                    reservedPackages[_packageID].supply[_resourceIndex]);
+                    reservedPackages[_packageID].currentSupply[_resourceIndex], 
+                    reservedPackages[_packageID].originalSupply[_resourceIndex]);
     }
 
     function getReservedResourcesPackagesNFTsCount(uint256 _packageID) public view returns(uint) {
@@ -81,10 +97,11 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
     }
 
     function getReservedResourcesPackagesNFT(uint256 _packageID, uint _nftIndex) public view 
-                    returns(uint256 _nftID, uint256 _nftProbability, string memory _nftJSON
-                    , string memory _nftURI) {
+                    returns(uint256 _nftID, uint256 _nftProbability, uint256 _nftSupply, 
+                    string memory _nftJSON, string memory _nftURI) {
         return (reservedPackages[_packageID].NFTsIDs[_nftIndex], 
                     reservedPackages[_packageID].NFTsProbability[_nftIndex], 
+                    reservedPackages[_packageID].NFTsSupply[_nftIndex],
                     reservedPackages[_packageID].NFTsJSON[_nftIndex], 
                     reservedPackages[_packageID].NFTsURI[_nftIndex]);
     }
@@ -125,7 +142,7 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
             _rps.owner = address(0);
             _rps.price = _price;
             _rps.resourcesIDs = _resourcesIDs;
-            _rps.supply = _supply;
+            _rps.originalSupply = _supply;
             // _rps.NFTsIDs = _NFTsIDs;
             // _rps.NFTsJSON = _NFTsJSON;
             // _rps.NFTsURI = _NFTsURI;
@@ -137,13 +154,14 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
 
     function setResourcesNFTsMeta(uint256 _resourcePackageID, 
                 uint256[] calldata _NFTsIDs, string[] calldata _NFTsJSON, string[] calldata _NFTsURI, 
-                uint[] calldata _NFTsProbability) external ownerOnly {
+                uint[] calldata _NFTsProbability, uint[] calldata _NFTsSupply) external ownerOnly {
         ResourcesPackageStruct storage _rps = resourcePackages[_resourcePackageID];
         for(uint i = 0; i < _NFTsIDs.length; i++){
             _rps.NFTsIDs.push(_NFTsIDs[i]);
             _rps.NFTsJSON.push(_NFTsJSON[i]);
             _rps.NFTsURI.push(_NFTsURI[i]);
             _rps.NFTsProbability.push(_NFTsProbability[i]);
+            _rps.NFTsSupply.push(_NFTsSupply[i]);
         }
     }
     
@@ -155,11 +173,32 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
             _rps.owner = msg.sender;
             _rps.price = resourcePackages[_resourcePackageID].price;
             _rps.resourcesIDs = resourcePackages[_resourcePackageID].resourcesIDs;
-            _rps.supply = resourcePackages[_resourcePackageID].supply;
+            _rps.originalSupply = resourcePackages[_resourcePackageID].originalSupply;
+            _rps.currentSupply = resourcePackages[_resourcePackageID].originalSupply;
             _rps.NFTsIDs = resourcePackages[_resourcePackageID].NFTsIDs;
             _rps.NFTsJSON = resourcePackages[_resourcePackageID].NFTsJSON;
             _rps.NFTsURI = resourcePackages[_resourcePackageID].NFTsURI;
             _rps.NFTsProbability = resourcePackages[_resourcePackageID].NFTsProbability;
+            _rps.NFTsSupply = resourcePackages[_resourcePackageID].NFTsSupply;
+
+        reservedPackages[reservedPackagesIndex++] = _rps; 
+
+          emit LogResourcesReserved(msg.sender, reservedPackagesIndex-1);
+    }
+
+    function reserveResources(uint256 _resourcePackageID, address _ReservedToAddress) external ownerOnly  {
+
+        ResourcesPackageStruct memory _rps;
+            _rps.owner = _ReservedToAddress;
+            _rps.price = resourcePackages[_resourcePackageID].price;
+            _rps.resourcesIDs = resourcePackages[_resourcePackageID].resourcesIDs;
+            _rps.originalSupply = resourcePackages[_resourcePackageID].originalSupply;
+            _rps.currentSupply = resourcePackages[_resourcePackageID].originalSupply;
+            _rps.NFTsIDs = resourcePackages[_resourcePackageID].NFTsIDs;
+            _rps.NFTsJSON = resourcePackages[_resourcePackageID].NFTsJSON;
+            _rps.NFTsURI = resourcePackages[_resourcePackageID].NFTsURI;
+            _rps.NFTsProbability = resourcePackages[_resourcePackageID].NFTsProbability;
+            _rps.NFTsSupply = resourcePackages[_resourcePackageID].NFTsSupply;
 
         reservedPackages[reservedPackagesIndex++] = _rps; 
 
@@ -174,11 +213,11 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
         for(uint i = 0; i < reservedPackages[_resourcePackageID].resourcesIDs.length; i++){
             uint256 resourceid = reservedPackages[_resourcePackageID].resourcesIDs[i];
             //Allocate resources to player, make sure supply covers resources else allocate the minimum allowed by supply
-            uint allocation = reservedPackages[_resourcePackageID].supply[i] * _rewardRatio/1000;
+            uint allocation = reservedPackages[_resourcePackageID].originalSupply[i] * _rewardRatio/1000;
 
             //Player can only be allocated to the max of available supply in the package
-            if(allocation > reservedPackages[_resourcePackageID].supply[i]){
-                allocation = reservedPackages[_resourcePackageID].supply[i];
+            if(allocation > reservedPackages[_resourcePackageID].currentSupply[i]){
+                allocation = reservedPackages[_resourcePackageID].currentSupply[i];
             }
 
             //Player can only be allocated to the max of available daily supply
@@ -195,7 +234,7 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
             }
 
             //remove allocated resources from package supply
-            reservedPackages[_resourcePackageID].supply[i] = reservedPackages[_resourcePackageID].supply[i] - allocation;
+            reservedPackages[_resourcePackageID].currentSupply[i] = reservedPackages[_resourcePackageID].currentSupply[i] - allocation;
 
             //remove allocated resources from daily supply
             dailyConsumed[resourceid] = dailyConsumed[resourceid] + allocation;
@@ -204,14 +243,28 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
         
         //Reward player with non-fungible resources
         for(uint i = 0; i < reservedPackages[_resourcePackageID].NFTsIDs.length; i++){
+            if(reservedPackages[_resourcePackageID].NFTsSupply[i] == 0)continue;
             //Allocate nft resources to player randomly based on probability
             NFTRewardRequest memory nftrr;
             nftrr._rewardedPlayer = _playerAddress;
             nftrr._resourcePackageID = _resourcePackageID;
             nftrr._nftIndex = i;
     
-            bytes32 queryId = rng.generateRandom();
-            randomQueryRPSMap[queryId] = nftrr;
+            //If probability is 0, then it is a guranteed
+            if(reservedPackages[_resourcePackageID].NFTsProbability[i] == 0){
+                address[] memory playersaddresses= new address[](1);
+                playersaddresses[0] = _playerAddress;
+                emit LogMessage("Minting NonFungible");
+                reservedPackages[_resourcePackageID].NFTsSupply[i] = reservedPackages[_resourcePackageID].NFTsSupply[i] - 1;
+                decentracraft.mintNonFungible(reservedPackages[_resourcePackageID].NFTsIDs[i], playersaddresses, 
+                        reservedPackages[_resourcePackageID].NFTsURI[i], 
+                        reservedPackages[_resourcePackageID].NFTsJSON[i]);
+
+            }else{                
+                emit LogMessage("Generating Random");
+                bytes32 queryId = rng.generateRandom();  
+                randomQueryRPSMap[queryId] = nftrr;
+            }
         }
     }
 
@@ -226,6 +279,7 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
             address[] memory playersaddresses= new address[](1);
             playersaddresses[0] = nftrr._rewardedPlayer;
             emit LogMessage("Minting NonFungible");
+            reservedPackages[nftrr._resourcePackageID].NFTsSupply[nftrr._nftIndex] = reservedPackages[nftrr._resourcePackageID].NFTsSupply[nftrr._nftIndex] - 1;
             decentracraft.mintNonFungible(reservedPackages[nftrr._resourcePackageID].NFTsIDs[nftrr._nftIndex], playersaddresses, 
                     reservedPackages[nftrr._resourcePackageID].NFTsURI[nftrr._nftIndex], 
                     reservedPackages[nftrr._resourcePackageID].NFTsJSON[nftrr._nftIndex]);

@@ -11,6 +11,10 @@ contract Ownable{
     function setOwner(address _owner) external ownerOnly {
         owner = _owner;
     }
+
+    function getOwner() internal returns(address){
+        return owner;
+    }
     
     modifier ownerOnly() {
       if (msg.sender == owner) _;

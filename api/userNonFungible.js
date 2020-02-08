@@ -1,10 +1,10 @@
-const Web3 = require('web3');
-const express = require('express');
-const https = require('https');
-const next = require('next')
-var bodyParser = require('body-parser');
-const cors = require('cors');
-const fs = require('fs');
+// const Web3 = require('web3');
+// const express = require('express');
+// const https = require('https');
+// const next = require('next')
+// var bodyParser = require('body-parser');
+// const cors = require('cors');
+// const fs = require('fs');
 const { waitForEvent } = require('../app/utils/utils');
 
 const Contracts = require('../app/contracts.js');
@@ -15,7 +15,8 @@ module.exports = async function (req, res) {
     await Contracts.loadContracts();
 
     console.log("Entering userNonFungible");
-    var player = req.body.player;
+    var bodyjson = JSON.parse(req.body);
+    var player = bodyjson.player;
     // var accounts = await Contracts.web3.eth.getAccounts();
     var user1 = Contracts.ownerAccount;//accounts[0];
     //console.log("Account 0 = " + user1);

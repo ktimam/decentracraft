@@ -66,7 +66,8 @@ exports.loadContracts = async function loadContracts(){
         abis.push(contractABI.abi);
 
         if(contractABI.contractName != "DecentracraftWorld" && 
-        contractABI.contractName != "Decentracraft" && contractABI.contractName != "DecentracraftItem"){
+        contractABI.contractName != "Decentracraft" && contractABI.contractName != "DecentracraftItem"
+        && contractABI.contractName != "MockRNG"){
             //Contract is not deployed
             // console.log("Contract " + contractABI.contractName + " is not deployed to network " + networkId);
             continue;
@@ -101,16 +102,22 @@ exports.loadContracts = async function loadContracts(){
 }
 
 async function sendTransaction(contract, contractFunction, value="0"){
+    return await sendTransaction(contract, contractFunction, privateKey, value="0");
+}
+
+async function sendTransaction(contract, contractFunction, ownerKey, value="0"){
     
     // console.log("Sending Transaction");
+    var ownerAccount = await web3.eth.accounts.privateKeyToAccount(ownerKey);
+    // console.log("ownerAccount.address: " + ownerAccount.address);
     let nonce = await web3.eth.getTransactionCount(ownerAccount.address);
-    console.log("Nonce: " + nonce);
+    // console.log("Nonce: " + nonce);
 
     let estimatedGas = await contractFunction.estimateGas({"from": ownerAccount.address, value: web3.utils.toWei(value.toString(),"ether"), "nonce": nonce});
-    console.log("Estimated Gas: " + estimatedGas);
+    // console.log("Estimated Gas: " + estimatedGas);
 
     let gasPrice = await web3.eth.getGasPrice();
-    console.log("Gas Price : " + gasPrice); 
+    // console.log("Gas Price : " + gasPrice); 
     
     const functionABI = await contractFunction.encodeABI();
 
@@ -126,7 +133,7 @@ async function sendTransaction(contract, contractFunction, value="0"){
     };
     
     const tx = new Tx(txParams, {'chain':'ropsten'});//, hardfork: 'constantinople'});
-    const privateKeyBuffer = Buffer.from(privateKey.split("0x")[1], 'hex');
+    const privateKeyBuffer = Buffer.from(ownerKey.split("0x")[1], 'hex');
     tx.sign(privateKeyBuffer); // Transaction Signing here
 
     const serializedTx = tx.serialize();
@@ -134,7 +141,7 @@ async function sendTransaction(contract, contractFunction, value="0"){
     let receipt = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));//, {from: ownerAccount.address});//, value: web3.utils.toHex(web3.utils.toWei("0.1","ether"))});    
     const txdecoder = new LogDecoder.LogDecoder(abis);
     const parsedLogs = txdecoder.decodeLogs(receipt.logs);
-    console.log(parsedLogs);
+    // console.log(parsedLogs);
     return parsedLogs;
 }
 

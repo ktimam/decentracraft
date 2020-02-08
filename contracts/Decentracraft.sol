@@ -15,6 +15,11 @@ contract Decentracraft is ERC1155MixedFungible  {
         decentracraftItem = _dcItem;
     }
 
+    function withdraw() public ownerOnly {
+        decentracraftItem.withdraw();
+        msg.sender.transfer(address(this).balance);
+    }
+
     uint256 nonce;
     // mapping (uint256 => address) public creators;
     mapping (uint256 => uint256) public maxIndex;

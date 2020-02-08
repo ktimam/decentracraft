@@ -17,6 +17,17 @@ contract DecentracraftItem is Ownable, usingProvable  {
 
     mapping (uint256 => DecentracraftItemStruct) public dcItems;
 
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+
+    function withdraw() public ownerOnly {
+        msg.sender.transfer(address(this).balance);
+    }
+
+    function () external payable {
+    }
+
     
     function getDCItem(uint256 _id) public view returns (DecentracraftItemStruct memory)
     {
