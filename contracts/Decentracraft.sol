@@ -20,6 +20,9 @@ contract Decentracraft is ERC1155MixedFungible  {
         msg.sender.transfer(address(this).balance);
     }
 
+    function () external payable {
+    }
+
     uint256 nonce;
     // mapping (uint256 => address) public creators;
     mapping (uint256 => uint256) public maxIndex;

@@ -20,7 +20,7 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
     }
 
     function withdraw() public ownerOnly {
-        //decentracraft.withdraw();
+        decentracraft.withdraw();
         msg.sender.transfer(address(this).balance);
     }
 

@@ -32,34 +32,47 @@ module.exports = async function (req, res) {
 
     var createFunction = await decentracraftWorld.methods.create('', false);
     var result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
-    console.log(result);
-    let woodTypeID = extractTokenID(result);//'15993271245284107782778606549293105938432';
+    // console.log(result);
+    let woodTypeID = extractTokenID(result);
     console.log("Wood ID = " + woodTypeID);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     // console.log(result);
+    let resourceTypeID = extractTokenID(result);
+    console.log("Rock ID = " + resourceTypeID);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     // console.log(result);
+    resourceTypeID = extractTokenID(result);
+    console.log("Gold ID = " + resourceTypeID);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     // console.log(result);
+    resourceTypeID = extractTokenID(result);
+    console.log("Diamond ID = " + resourceTypeID);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     // console.log(result);
+    resourceTypeID = extractTokenID(result);
+    console.log("Silicon ID = " + resourceTypeID);
 
-    let hammerUri = 'https://meta.decentracraft.com/hammer.json';
+    let apiurl = "https://dccapi2.now.sh/public/";
+    let hammerUri = apiurl + 'hammer.json';
     createFunction = await decentracraftWorld.methods.create(hammerUri, true);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
-    console.log(result);
+    // console.log(result);
     let hammerTypeID = extractTokenID(result);//'57896044618658097711785492504343953941607416477341574412117274730954366124032';
     console.log("Hammer ID = " + hammerTypeID);
     
-    let swordUri = 'https://meta.decentracraft.com/sword.json';
+    let swordUri = apiurl + 'sword.json';
     createFunction = await decentracraftWorld.methods.create(swordUri, true);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     // console.log(result);
+    resourceTypeID = extractTokenID(result);
+    console.log("Sword ID = " + resourceTypeID);
     
-    let stickUri = 'https://meta.decentracraft.com/stick.json';
+    let stickUri = apiurl + 'stick.json';
     createFunction = await decentracraftWorld.methods.create(stickUri, true);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     // console.log(result);
+    resourceTypeID = extractTokenID(result);
+    console.log("Computer Chip ID = " + resourceTypeID);
 
     createFunction = await decentracraftWorld.methods.setDailySupply(woodTypeID, 2000);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
@@ -79,9 +92,9 @@ module.exports = async function (req, res) {
 
     var contractFunction = await decentracraftWorld.methods.rewardPlayer(0, rewardRatio, player);
     result = await Contracts.sendTransaction(decentracraftWorld, contractFunction, reservedToKey);  
-    console.log(result);
+    // console.log(result);
     var queryID = extractQueryID(result);  
-    console.log("queryID = " + queryID);
+    // console.log("queryID = " + queryID);
     
     contractFunction = await mockRNGContract.methods.randomReceived(queryID, 100);
     result = await Contracts.sendTransaction(mockRNGContract, contractFunction, ownerKey);   

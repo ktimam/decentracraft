@@ -1,9 +1,12 @@
 {
-    "name": "dccapi",
     "env": {
       "rpc": "@rpc",
       "privatekey": "@privatekey"
     },
+    "builds":[        
+        { "src": "/api/*", "use": "@now/node" },
+        {"src":"/public/*","use":"@now/static"}
+    ],
     "routes": [
         {
             "headers": {
@@ -15,5 +18,5 @@
             "dest": "/api/$1.js",
             "status": 200
         }
-]
+    ]
 }

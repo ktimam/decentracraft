@@ -11,7 +11,10 @@ const fs = require('fs');
 
 // if (!options.rpc || options.rpc.length <= 0)
 //     throw "RPC endpoint missing";
- 
+exports.ServerURL = "https://dccapi2.now.sh/";
+exports.ServerPublicURL = this.ServerURL + "public/"
+
+
 console.log("Retreiving contract info");
 
 // var privateKey = fs.readFileSync("./.secret").toString().trim();

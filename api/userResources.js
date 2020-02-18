@@ -7,6 +7,8 @@
 // const fs = require('fs');
 const { waitForEvent } = require('../app/utils/utils');
 
+const { ServerPublicURL } = require('../app/contracts.js');
+
 const Contracts = require('../app/contracts.js');
 
 // Get resources packages listed for wholesale
@@ -14,13 +16,13 @@ module.exports = async function (req, res) {
     
     await Contracts.loadContracts();
 
-    console.log("Entering userResourcesPackages");
-    console.log("req = " + req);
-    console.log("req.method = " + req.method);
+    console.log("Entering userResources");
+    // console.log("req = " + req);
+    // console.log("req.method = " + req.method);
 
     console.log("req.body = " + req.body);
     var bodyjson = JSON.parse(req.body);
-    console.log("bodyjson = " + bodyjson);
+    // console.log("bodyjson = " + bodyjson);
     var player = bodyjson.player;
     console.log("player = " + player);
     // var accounts = await Contracts.web3.eth.getAccounts();
@@ -43,20 +45,20 @@ module.exports = async function (req, res) {
 
         var isfungible = await mainContract.methods.isFungible(dciid).call();
         if(isfungible){
-            console.log("id = " + dciid);
             var balance = await mainContract.methods.balanceOf(player, dciid).call();
             console.log("balance = " + balance);
             if(balance > 0)
             {
                 tokensjson.tokens.push({ 
                     "id" : dciid,
+                    "uri"  : ServerPublicURL + dciid + ".json",
                     "balance"  : parseInt(balance)
                 });
             }
         }else{
             var owner = await mainContract.methods.nfOwners(dciid).call();
-            console.log("nfOwners = " + owner);
-            if(owner == player){
+            console.log("NFT Owner = " + owner);
+            if(owner.toLowerCase() == player.toLowerCase()){
                 var dcitemstruct = await dciContract.methods.dcItems(dciid).call();
                 console.log(dcitemstruct);
                 var attributeshash = await dcitemstruct.attributesStorageHash;

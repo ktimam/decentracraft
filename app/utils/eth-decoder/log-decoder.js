@@ -1,10 +1,13 @@
 // import Decoder from "./decoder"
 // const Decoder = require("./decoder");
+const ethers = require('ethers');
 const Interface = require("ethers/utils/interface")
 
 exports.LogDecoder = class LogDecoder /* extends Decoder */ {
   
   constructor(abis = []) {
+    ethers.errors.setLogLevel("error")
+
     this._interfaces = []
     abis.forEach(abi => {
       const methodInterface = new Interface.Interface(abi)

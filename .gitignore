@@ -6,3 +6,5 @@ build/
 truffle-config.js
 keys/
 .env
+
+.now
