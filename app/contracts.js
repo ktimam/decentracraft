@@ -22,7 +22,15 @@ var privateKey = process.env.privatekey;
 // console.log("privateKey = " + privateKey);
 
 //var provider = new Web3.providers.HttpProvider(options.rpc);
-var provider = new Web3.providers.WebsocketProvider(process.env.rpc);
+var provider = new Web3.providers.WebsocketProvider(process.env.rpc,
+    {
+      clientConfig: {
+        keepalive: false,
+        // keepaliveInterval: 5000,
+        useNativeKeepalive: false
+      },
+      protocol: []
+    });
 // var provider = new HDWalletProvider(privateKey, options.rpc)
 
    

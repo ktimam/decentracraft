@@ -1,11 +1,8 @@
-// const Web3 = require('web3');
-// const express = require('express');
-// const https = require('https');
-// const next = require('next')
-// var bodyParser = require('body-parser');
-// const cors = require('cors');
-// const fs = require('fs');
+const fetch = require("node-fetch");
+
 const { waitForEvent } = require('../app/utils/utils');
+
+const { ServerPublicURL } = require('../app/contracts.js');
 
 const Contracts = require('../app/contracts.js');
 
@@ -15,18 +12,10 @@ module.exports = async function (req, res) {
     await Contracts.loadContracts();
 
     console.log("Entering userResourcesPackages");
-    console.log("req = " + req);
-    console.log("req.method = " + req.method);
     var packagesjson = {
         packages: []
     };
-    if (req.method === 'OPTIONS') {
-        res.json(packagesjson.packages);
-        return;
-    }
-    console.log("req.body = " + req.body);
     var bodyjson = JSON.parse(req.body);
-    console.log("bodyjson = " + bodyjson);
     var player = bodyjson.player;
     console.log("player = " + player);
     // var accounts = await Contracts.web3.eth.getAccounts();
@@ -64,7 +53,7 @@ module.exports = async function (req, res) {
             var {_resourceID, _resourceSupply} = await decentracraftWorld.methods.getReservedResourcesPackagesResource(i, r).call();
             resourcesjson.resources.push({ 
                 "id" : _resourceID,
-                "name" : "resource " + _resourceID,
+                "uri"  : ServerPublicURL + _resourceID + ".json",
                 "supply" : _resourceSupply,
             });
         }
@@ -80,23 +69,28 @@ module.exports = async function (req, res) {
 
             nftsjson.nfts.push({ 
                 "id" : _nftID,
-                "name" : "nft " + _nftID,
                 "uri" : _nftURI,
                 "json" : _nftJSON,
                 "probability" : _nftProbability,
             });
         }
+
+        let uriname = "Resources Package " + i + ".json";
+        let uriurl  = ServerPublicURL + uriname;
+
+        let uridata = await fetch(uriurl);
+        let urijson = await uridata.json();
         
         
         packagesjson.packages.push({ 
             "packageID" : i,
-            "name"  : "Package" + i,
+            "name"  : urijson.name,
             "price" : price,            
-            "color": '#F6FEFC',
-            "image": 'https://res.cloudinary.com/ddklsa6jc/image/upload/v1556888670/6_w93q19.png',
-            "assetUrl": 'https://www.cryptokitties.co/',
+            "color": urijson.color,
+            "image": urijson.image,
+            "assetUrl": urijson.assetUrl,
             "currentOwner": owner,
-            "description": '',
+            "description": urijson.description,
             "resources" : resourcesjson.resources,
             "nfts" : nftsjson.nfts,
         });
