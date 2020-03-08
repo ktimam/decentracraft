@@ -1,10 +1,3 @@
-// const Web3 = require('web3');
-// const express = require('express');
-// const https = require('https');
-// const next = require('next')
-// var bodyParser = require('body-parser');
-// const cors = require('cors');
-// const fs = require('fs');
 const { waitForEvent } = require('../app/utils/utils');
 
 const { ServerPublicURL } = require('../app/contracts.js');
@@ -67,7 +60,7 @@ module.exports = async function (req, res) {
                 tokensjson.nftokens.push({ 
                     "id" : dciid,
                     "uri"  : dciuri,
-                    "attributes" : attributeshash
+                    "attributeshash" : attributeshash
                 });
             }
         }

@@ -1,7 +1,7 @@
 const { waitForEvent } = require('../app/utils/utils');
 
 const Contracts = require('../app/contracts.js');
-const { web3 } = require('../app/contracts.js');
+const { web3, ServerPublicURL } = require('../app/contracts.js');
 
 // Get resources packages listed for wholesale
 module.exports = async function (req, res) {
@@ -52,22 +52,21 @@ module.exports = async function (req, res) {
     resourceTypeID = extractTokenID(result);
     console.log("Silicon ID = " + resourceTypeID);
 
-    let apiurl = "https://dccapi2.now.sh/public/";
-    let hammerUri = apiurl + 'hammer.json';
+    let hammerUri = ServerPublicURL + 'hammer.json';
     createFunction = await decentracraftWorld.methods.create(hammerUri, true);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     // console.log(result);
-    let hammerTypeID = extractTokenID(result);//'57896044618658097711785492504343953941607416477341574412117274730954366124032';
+    let hammerTypeID = extractTokenID(result);
     console.log("Hammer ID = " + hammerTypeID);
     
-    let swordUri = apiurl + 'sword.json';
+    let swordUri = ServerPublicURL + 'sword.json';
     createFunction = await decentracraftWorld.methods.create(swordUri, true);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     // console.log(result);
     resourceTypeID = extractTokenID(result);
     console.log("Sword ID = " + resourceTypeID);
     
-    let stickUri = apiurl + 'stick.json';
+    let stickUri = ServerPublicURL + 'stick.json';
     createFunction = await decentracraftWorld.methods.create(stickUri, true);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     // console.log(result);
