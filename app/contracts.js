@@ -62,11 +62,6 @@ var abis = [];
 exports.loadContracts = async function loadContracts(){
     console.log("Entering loadContracts");
     networkId = await web3.eth.net.getId();
-    // networkName = await web3.eth.net.getName();
-    // console.log("networkName = " + networkName + " , networkId = " + networkId);
-    // Load contracts from build
-    // console.log("buildFiles size = " + buildFiles.length);
-    // buildFiles.forEach(abiFile => {
     for(var i=0; i < buildFiles.length; i++){
         var abiFile = buildFiles[i];
         // console.log("abiFile = " + abiFile);
@@ -86,28 +81,8 @@ exports.loadContracts = async function loadContracts(){
         const deployedAddress = contractABI.networks[networkId].address;
         console.log("Contract " + contractABI.contractName + " address = " + deployedAddress);
 
-        // var contract = Contract(contractABI);
-        // contract.setProvider(provider);
-        // // contract.setNetwork(networkId);
-        // contract.detectNetwork();
-        // var contractObj = await contract.deployed();
-
-        // console.log("Contract address = " + contract.address);
-        // var contractObj = Contract(contractABI);
         var contractObj = new web3.eth.Contract(contractABI.abi, deployedAddress, {from:ownerAccount.address});
-
-        //contractObj.setProvider(provider);
-        //console.log("Contract Obj address = " + contractObj.address);
-        //dirty hack for web3@1.0.0 support for localhost testrpc, see https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
-        // if (typeof contractObj.currentProvider.sendAsync !== "function") {
-        //     contractObj.currentProvider.sendAsync = function() {
-        //         return contractObj.currentProvider.send.apply(
-        //             contractObj.currentProvider, arguments
-        //         );
-        //     };
-        // }
         
-        //contractObj.detectNetwork();
         exports[abiFile.split(".")[0]] = contractObj;
     }
 }
@@ -155,5 +130,42 @@ async function sendTransaction(contract, contractFunction, ownerKey, value="0"){
     // console.log(parsedLogs);
     return parsedLogs;
 }
-
 exports.sendTransaction = sendTransaction;
+
+async function sendEthers(address, ownerKey, value){
+    
+    // console.log("Sending Transaction");
+    var ownerAccount = await web3.eth.accounts.privateKeyToAccount(ownerKey);
+    // console.log("ownerAccount.address: " + ownerAccount.address);
+    let nonce = await web3.eth.getTransactionCount(ownerAccount.address);
+    // console.log("Nonce: " + nonce);
+
+    let estimatedGas = 3000000;
+    // console.log("Estimated Gas: " + estimatedGas);
+
+    let gasPrice = await web3.eth.getGasPrice();
+    // console.log("Gas Price : " + gasPrice); 
+
+    const txParams = {
+        chainId: networkId,
+        "gasPrice": web3.utils.toHex(gasPrice),
+        "gasLimit": web3.utils.toHex(estimatedGas),
+        "to": address,
+        "from": ownerAccount.address,
+        "value": web3.utils.toHex(web3.utils.toWei(value,"ether")),
+        "nonce": '0x' + nonce.toString(16)
+    };
+    
+    const tx = new Tx(txParams, {'chain':'ropsten'});//, hardfork: 'constantinople'});
+    const privateKeyBuffer = Buffer.from(ownerKey.split("0x")[1], 'hex');
+    tx.sign(privateKeyBuffer); // Transaction Signing here
+
+    const serializedTx = tx.serialize();
+
+    let receipt = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));//, {from: ownerAccount.address});//, value: web3.utils.toHex(web3.utils.toWei("0.1","ether"))});    
+    const txdecoder = new LogDecoder.LogDecoder(abis);
+    const parsedLogs = txdecoder.decodeLogs(receipt.logs);
+    // console.log(parsedLogs);
+    return parsedLogs;
+}
+exports.sendEthers = sendEthers;

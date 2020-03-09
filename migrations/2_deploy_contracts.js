@@ -5,18 +5,7 @@ var ProvableRNG = artifacts.require("./Utils/ProvableRNG.sol");
 var MockRNG = artifacts.require("./Utils/MockRNG.sol");
 
 module.exports = function(deployer) {
-  //var dci = await deployer.deploy(DecentracraftItem);
-  //deployer.deploy(Decentracraft, dci);
-
-  // var dci = await DecentracraftItem.new();//deployer.deploy(DecentracraftItem);
-  // var dcc = await Decentracraft.new(dci);//deployer.deploy(Decentracraft, dci);
-  // var rng = await ProvableRNG.new(ProvableRNG);//deployer.deploy(ProvableRNG);
-  // var dccworld = await DecentracraftWorld.new(dcc, rng);//deployer.deploy(DecentracraftWorld, dcc, rng);
-  // await dcc.setOwner(dccworld);
-
   process.env.NETWORK = deployer.network;
-  
-  // console.log("deployer.network = " + deployer.network);
 
   deployer.deploy(DecentracraftItem).then(function() {
     return DecentracraftItem.deployed();
@@ -35,7 +24,6 @@ module.exports = function(deployer) {
       return deployer.deploy(ProvableRNG);
     }
   }).then(function() {
-    // console.log("Decentracraft = " + Decentracraft.address);
     if(deployer.network != "ropsten"){
       console.log("MockRNG = " + MockRNG.address);
       return deployer.deploy(DecentracraftWorld, Decentracraft.address, MockRNG.address);
@@ -48,8 +36,6 @@ module.exports = function(deployer) {
     console.log("DecentracraftWorld = " + DecentracraftWorld.address);
     return Decentracraft.deployed();
   }).then(function(instance){
-    // console.log("Decentracraft = " + instance.address);
-    // console.log("DecentracraftWorld = " + DecentracraftWorld.address);
     instance.setOwner(DecentracraftWorld.address);
 
     return DecentracraftWorld.deployed();

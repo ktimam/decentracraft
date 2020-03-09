@@ -4,26 +4,19 @@ const { ServerPublicURL } = require('../app/contracts.js');
 
 const Contracts = require('../app/contracts.js');
 
-// Get resources packages listed for wholesale
+// Get resources owned by user
 module.exports = async function (req, res) {
     
     await Contracts.loadContracts();
 
     console.log("Entering userResources");
-    // console.log("req = " + req);
-    // console.log("req.method = " + req.method);
-
-    console.log("req.body = " + req.body);
     var bodyjson = JSON.parse(req.body);
-    // console.log("bodyjson = " + bodyjson);
     var player = bodyjson.player;
     console.log("player = " + player);
-    // var accounts = await Contracts.web3.eth.getAccounts();
-    var user1 = Contracts.ownerAccount;//accounts[0];
-    //console.log("Account 0 = " + user1);
+    var user1 = Contracts.ownerAccount;
 
-    var mainContract = await Contracts.Decentracraft;//.deployed();
-    var dciContract = await Contracts.DecentracraftItem;//.deployed();
+    var mainContract = await Contracts.Decentracraft;
+    var dciContract = await Contracts.DecentracraftItem;
     
     var tokensjson = {
         tokens: [],

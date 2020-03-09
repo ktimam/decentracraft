@@ -19,8 +19,12 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
         return address(this).balance;
     }
 
-    function withdraw() public ownerOnly {
+    function withdrawAll() public ownerOnly {
         decentracraft.withdraw();
+        msg.sender.transfer(address(this).balance);
+    }
+
+    function withdraw() public ownerOnly {
         msg.sender.transfer(address(this).balance);
     }
 
@@ -118,6 +122,10 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
     constructor (Decentracraft _decentracraft, IRandomGenerator _rng) public payable  { 
         decentracraft = _decentracraft;
         rng = _rng;
+    }
+
+    function updateDCCWorldAddress(address _dccWorldAddress) public ownerOnly {
+        decentracraft.setOwner(_dccWorldAddress);
     }
 
     function getResourcePackagesIndex() public view returns(uint) {
