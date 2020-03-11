@@ -293,5 +293,10 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
                     reservedPackages[nftrr._resourcePackageID].NFTsJSON[nftrr._nftIndex]);
         }
         delete randomQueryRPSMap[_queryId];
+    }  
+
+    //Emergency function to manually add json hash in case it wasn't handled correctly by provable
+    function setDCIJSONHash(uint256 _id, string calldata _jsonHash) external ownerOnly{
+        decentracraft.setDCIJSONHash(_id, _jsonHash);
     }
 }

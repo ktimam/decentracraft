@@ -106,5 +106,10 @@ contract Decentracraft is ERC1155MixedFungible  {
                 _doSafeTransferAcceptanceCheck(msg.sender, msg.sender, to, _id, quantity, '');
             }
         }
+    }    
+
+    //Emergency function to manually add json hash in case it wasn't handled correctly by provable
+    function setDCIJSONHash(uint256 _id, string memory _jsonHash) public ownerOnly{
+        decentracraftItem.setDCIJSONHash(_id, _jsonHash);
     }
 }

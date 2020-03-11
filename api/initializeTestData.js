@@ -30,10 +30,11 @@ module.exports = async function (req, res) {
     var dciContract = await Contracts.DecentracraftItem;//.deployed();
     var mockRNGContract = await Contracts.MockRNG;//.deployed();
 
+    let dccowner = await decentracraft.methods.owner().call();
+    console.log("Decentracraft Owner = " + dccowner);
     
-    //Send ethers to rng contract 
+    //Send ethers to dci contract 
     var sendEthersresult = await Contracts.sendEthers(dciContract.options.address, ownerKey, "0.5");
-    // console.log("Ethers sent = " + sendEthersresult);   
 
     ////////////***************************************************************************           Resources */
     var createFunction = await decentracraftWorld.methods.create('', false);
@@ -56,17 +57,17 @@ module.exports = async function (req, res) {
     let ironTypeID = extractTokenID(result);
     console.log("Iron ID = " + ironTypeID);
 
-    createFunction = await decentracraftWorld.methods.setDailySupply(woodTypeID, 2000);
+    createFunction = await decentracraftWorld.methods.setDailySupply(woodTypeID, 100000);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
-    createFunction = await decentracraftWorld.methods.setDailySupply(rockTypeID, 1500);
+    createFunction = await decentracraftWorld.methods.setDailySupply(rockTypeID, 75000);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
-    createFunction = await decentracraftWorld.methods.setDailySupply(ironTypeID, 900);
+    createFunction = await decentracraftWorld.methods.setDailySupply(ironTypeID, 40000);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
-    createFunction = await decentracraftWorld.methods.setDailySupply(goldTypeID, 70);
+    createFunction = await decentracraftWorld.methods.setDailySupply(goldTypeID, 3000);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
-    createFunction = await decentracraftWorld.methods.setDailySupply(diamondTypeID, 15);
+    createFunction = await decentracraftWorld.methods.setDailySupply(diamondTypeID, 400);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
-    createFunction = await decentracraftWorld.methods.setDailySupply(siliconTypeID, 400);
+    createFunction = await decentracraftWorld.methods.setDailySupply(siliconTypeID, 25000);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
 
     ////////////***************************************************************************           Items */
@@ -108,22 +109,22 @@ module.exports = async function (req, res) {
 
     ////////////***************************************************************************           Packages */
     //Create Common Resources Package
-    createFunction = await decentracraftWorld.methods.addResourcesPackage(web3.utils.toWei("0.5","ether"), [woodTypeID], [100]);
+    createFunction = await decentracraftWorld.methods.addResourcesPackage(web3.utils.toWei("0.5","ether"), [woodTypeID], [35000]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
-    createFunction = await decentracraftWorld.methods.setResourcesNFTsMeta(0, [stickTypeID], [stickAttributes], [stickUri], [1000], [10]);
+    createFunction = await decentracraftWorld.methods.setResourcesNFTsMeta(0, [stickTypeID], [stickAttributes], [stickUri], [1000], [500]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
 
     //Create Basic Resources Package
-    createFunction = await decentracraftWorld.methods.addResourcesPackage(web3.utils.toWei("0.9","ether"), [rockTypeID, ironTypeID], [60, 35]);
+    createFunction = await decentracraftWorld.methods.addResourcesPackage(web3.utils.toWei("2","ether"), [rockTypeID, ironTypeID], [25000, 10000]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     createFunction = await decentracraftWorld.methods.setResourcesNFTsMeta(1, [hammerTypeID, axeTypeID], [hammerAttributes, axeAttributes], 
-                                                                                    [hammerUri, axeUri], [200, 150], [5, 5]);
+                                                                                    [hammerUri, axeUri], [200, 150], [100, 80]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
 
     //Create Valuable Resources Package
-    createFunction = await decentracraftWorld.methods.addResourcesPackage(web3.utils.toWei("1.7","ether"), [goldTypeID, diamondTypeID], [5, 1]);
+    createFunction = await decentracraftWorld.methods.addResourcesPackage(web3.utils.toWei("5","ether"), [goldTypeID, diamondTypeID], [750, 100]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
-    createFunction = await decentracraftWorld.methods.setResourcesNFTsMeta(2, [swordTypeID], [swordAttributes], [swordUri], [80], [2]);
+    createFunction = await decentracraftWorld.methods.setResourcesNFTsMeta(2, [swordTypeID], [swordAttributes], [swordUri], [80], [20]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
 
     ////////////***************************************************************************           Reserve to wholesellers */
@@ -136,28 +137,6 @@ module.exports = async function (req, res) {
     createFunction = await decentracraftWorld.methods.reserveResources(2, reservedToPublicKey);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
 
-    ////////////***************************************************************************           Reward to player */
-    var contractFunction = await decentracraftWorld.methods.rewardPlayer(0, rewardRatio, player);
-    result = await Contracts.sendTransaction(decentracraftWorld, contractFunction, reservedToKey); 
-    var queryID = extractQueryID(result);  
-    // console.log("queryID = " + queryID);    
-    contractFunction = await mockRNGContract.methods.randomReceived(queryID, 100000);
-    result = await Contracts.sendTransaction(mockRNGContract, contractFunction, ownerKey);   
-    
-    contractFunction = await decentracraftWorld.methods.rewardPlayer(1, rewardRatio, player);
-    result = await Contracts.sendTransaction(decentracraftWorld, contractFunction, reservedToKey); 
-    queryID = extractQueryID(result);  
-    // console.log("queryID = " + queryID);    
-    contractFunction = await mockRNGContract.methods.randomReceived(queryID, 100000);
-    result = await Contracts.sendTransaction(mockRNGContract, contractFunction, ownerKey);   
-    
-    contractFunction = await decentracraftWorld.methods.rewardPlayer(2, rewardRatio, player);
-    result = await Contracts.sendTransaction(decentracraftWorld, contractFunction, reservedToKey); 
-    queryID = extractQueryID(result);  
-    // console.log("queryID = " + queryID);    
-    contractFunction = await mockRNGContract.methods.randomReceived(queryID, 100000);
-    result = await Contracts.sendTransaction(mockRNGContract, contractFunction, ownerKey);   
-    
     res.json(result);
 }
 
@@ -165,14 +144,6 @@ function extractTokenID(tx) {
     for (let l of tx) {
         if (l.event === 'TransferSingle') {
             return l.args._id;
-        }
-    }
-}
-
-function extractQueryID(tx) {
-    for (let l of tx) {
-        if (l.event === 'LogRandomQueryCreated') {
-            return l.args.queryId;
         }
     }
 }

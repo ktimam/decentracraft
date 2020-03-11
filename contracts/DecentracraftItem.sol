@@ -86,4 +86,10 @@ contract DecentracraftItem is Ownable, usingProvable  {
           validIds[queryId] = _id;
         }
     }
+
+    //Emergency function to manually add json hash in case it wasn't handled correctly by provable
+    function setDCIJSONHash(uint256 _id, string memory _jsonHash) public ownerOnly{
+        string memory json_hash = _jsonHash;
+        dcItems[_id].attributesStorageHash = json_hash;
+    }
 }

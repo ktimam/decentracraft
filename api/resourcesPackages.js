@@ -58,7 +58,7 @@ module.exports = async function (req, res) {
         };
         console.log("nftsCount = " + nftsCount);
         for(var r=0; r < nftsCount; r++){
-            var {_nftID, _nftProbability, _nftJSON, _nftURI} = 
+            var {_nftID, _nftProbability, _nftSupply, _nftJSON, _nftURI} = 
                     await decentracraftWorld.methods.getResourcesPackagesNFT(i, r).call();
 
             nftsjson.nfts.push({ 
@@ -66,6 +66,7 @@ module.exports = async function (req, res) {
                 "uri" : _nftURI,
                 "json" : _nftJSON,
                 "probability" : _nftProbability,
+                "supply" : _nftSupply,
             });
         }
         
