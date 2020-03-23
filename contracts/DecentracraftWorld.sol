@@ -41,6 +41,7 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
 
     struct ResourcesPackageStruct
     {
+        string uri;
         address owner;
         uint256 price;
         uint256[] resourcesIDs;
@@ -144,9 +145,10 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
         dailySupply[_itemID] = _supply;
     }
 
-    function addResourcesPackage(uint256 _price, uint256[] calldata _resourcesIDs, uint256[] calldata _supply) external ownerOnly{
+    function addResourcesPackage(string calldata _uri, uint256 _price, uint256[] calldata _resourcesIDs, uint256[] calldata _supply) external ownerOnly{
 
         ResourcesPackageStruct memory _rps;
+            _rps.uri = _uri;
             _rps.owner = address(0);
             _rps.price = _price;
             _rps.resourcesIDs = _resourcesIDs;
@@ -179,6 +181,7 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
         
         ResourcesPackageStruct memory _rps;
             _rps.owner = msg.sender;
+            _rps.uri = resourcePackages[_resourcePackageID].uri;
             _rps.price = resourcePackages[_resourcePackageID].price;
             _rps.resourcesIDs = resourcePackages[_resourcePackageID].resourcesIDs;
             _rps.originalSupply = resourcePackages[_resourcePackageID].originalSupply;
@@ -198,6 +201,7 @@ contract DecentracraftWorld is Ownable, IRNGReceiver {
 
         ResourcesPackageStruct memory _rps;
             _rps.owner = _ReservedToAddress;
+            _rps.uri = resourcePackages[_resourcePackageID].uri;
             _rps.price = resourcePackages[_resourcePackageID].price;
             _rps.resourcesIDs = resourcePackages[_resourcePackageID].resourcesIDs;
             _rps.originalSupply = resourcePackages[_resourcePackageID].originalSupply;

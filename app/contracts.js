@@ -49,6 +49,8 @@ exports.ownerAccount = ownerAccount;
 var networkId;
 var networkName;
 
+// exports.networkId = networkId;
+
 let zeroAddress = '0x0000000000000000000000000000000000000000';
 
 const buildPath = __dirname + "/../build/contracts/";
@@ -62,6 +64,8 @@ var abis = [];
 exports.loadContracts = async function loadContracts(){
     console.log("Entering loadContracts");
     networkId = await web3.eth.net.getId();
+    console.log("Network ID = " + networkId);
+    exports.networkId = networkId;
     for(var i=0; i < buildFiles.length; i++){
         var abiFile = buildFiles[i];
         // console.log("abiFile = " + abiFile);
@@ -71,9 +75,16 @@ exports.loadContracts = async function loadContracts(){
         const contractABI = require(abiPath);
         abis.push(contractABI.abi);
 
+        var rngContractFlag     = false;
+        if(networkId == 50 && contractABI.contractName == "MockRNG"){
+            rngContractFlag = true;
+        }else if(networkId == 3 && contractABI.contractName == "ProvableRNG"){
+            rngContractFlag = true;
+        }
+
         if(contractABI.contractName != "DecentracraftWorld" && 
         contractABI.contractName != "Decentracraft" && contractABI.contractName != "DecentracraftItem"
-        && contractABI.contractName != "MockRNG"){
+        && !rngContractFlag){
             //Contract is not deployed
             // console.log("Contract " + contractABI.contractName + " is not deployed to network " + networkId);
             continue;
@@ -109,8 +120,8 @@ async function sendTransaction(contract, contractFunction, ownerKey, value="0"){
 
     const txParams = {
         chainId: networkId,
-        "gasPrice": web3.utils.toHex(gasPrice),
-        "gasLimit": web3.utils.toHex(estimatedGas),
+        "gasPrice": web3.utils.toHex(gasPrice * 5),
+        "gasLimit": web3.utils.toHex(estimatedGas * 5),
         "data": functionABI,
         "to": contract._address,
         // from: ownerAccount.address,
@@ -148,7 +159,7 @@ async function sendEthers(address, ownerKey, value){
 
     const txParams = {
         chainId: networkId,
-        "gasPrice": web3.utils.toHex(gasPrice),
+        "gasPrice": web3.utils.toHex(gasPrice * 5),
         "gasLimit": web3.utils.toHex(estimatedGas),
         "to": address,
         "from": ownerAccount.address,

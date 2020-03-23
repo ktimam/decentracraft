@@ -15,8 +15,6 @@ module.exports = async function (req, res) {
     console.log("player = " + player);
     // var resourceId = bodyjson.resourceId;
     // console.log("resourceId = " + resourceId);
-    var rewardRatio = bodyjson.rewardRatio;
-    console.log("rewardRatio = " + rewardRatio);
     var ownerKey = bodyjson.ownerKey;
     console.log("ownerKey = " + ownerKey);
 
@@ -28,19 +26,29 @@ module.exports = async function (req, res) {
     var decentracraftWorld = await Contracts.DecentracraftWorld;
     var decentracraft = await Contracts.Decentracraft;//.deployed();
     var dciContract = await Contracts.DecentracraftItem;//.deployed();
-    var mockRNGContract = await Contracts.MockRNG;//.deployed();
 
     let dccowner = await decentracraft.methods.owner().call();
     console.log("Decentracraft Owner = " + dccowner);
     
     //Send ethers to dci contract 
-    var sendEthersresult = await Contracts.sendEthers(dciContract.options.address, ownerKey, "0.5");
+    console.log("Sending ethers to dci");
+    var sendEthersresult = await Contracts.sendEthers(dciContract.options.address, ownerKey, "0.1");
+
+    console.log("Network ID = " + Contracts.networkId);
+    if(Contracts.networkId == 3){
+        console.log("Sending ethers to provable rng");
+        var provableRNGContract = await Contracts.ProvableRNG;
+        var sendEtherstoRNGresult = await Contracts.sendEthers(provableRNGContract.options.address, ownerKey, "0.1");
+    }
 
     ////////////***************************************************************************           Resources */
+    // console.time('EthereumCall');
+    console.log("Creating resources");
     var createFunction = await decentracraftWorld.methods.create('', false);
     var result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     let woodTypeID = extractTokenID(result);
     console.log("Wood ID = " + woodTypeID);
+    // console.timeEnd('EthereumCall');
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     let rockTypeID = extractTokenID(result);
     console.log("Rock ID = " + rockTypeID);
@@ -109,20 +117,21 @@ module.exports = async function (req, res) {
 
     ////////////***************************************************************************           Packages */
     //Create Common Resources Package
-    createFunction = await decentracraftWorld.methods.addResourcesPackage(web3.utils.toWei("0.5","ether"), [woodTypeID], [35000]);
+    createFunction = await decentracraftWorld.methods.addResourcesPackage("rp0.json",web3.utils.toWei("0.5","ether"), [woodTypeID], [35000]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
-    createFunction = await decentracraftWorld.methods.setResourcesNFTsMeta(0, [stickTypeID], [stickAttributes], [stickUri], [1000], [500]);
+    //Guranteed to receive stick
+    createFunction = await decentracraftWorld.methods.setResourcesNFTsMeta(0, [stickTypeID], [stickAttributes], [stickUri], [10000], [500]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
 
     //Create Basic Resources Package
-    createFunction = await decentracraftWorld.methods.addResourcesPackage(web3.utils.toWei("2","ether"), [rockTypeID, ironTypeID], [25000, 10000]);
+    createFunction = await decentracraftWorld.methods.addResourcesPackage("rp1.json",web3.utils.toWei("2","ether"), [rockTypeID, ironTypeID], [25000, 10000]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     createFunction = await decentracraftWorld.methods.setResourcesNFTsMeta(1, [hammerTypeID, axeTypeID], [hammerAttributes, axeAttributes], 
                                                                                     [hammerUri, axeUri], [200, 150], [100, 80]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
 
     //Create Valuable Resources Package
-    createFunction = await decentracraftWorld.methods.addResourcesPackage(web3.utils.toWei("5","ether"), [goldTypeID, diamondTypeID], [750, 100]);
+    createFunction = await decentracraftWorld.methods.addResourcesPackage("rp2.json",web3.utils.toWei("5","ether"), [goldTypeID, diamondTypeID], [750, 100]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);
     createFunction = await decentracraftWorld.methods.setResourcesNFTsMeta(2, [swordTypeID], [swordAttributes], [swordUri], [80], [20]);
     result = await Contracts.sendTransaction(decentracraftWorld, createFunction, ownerKey);

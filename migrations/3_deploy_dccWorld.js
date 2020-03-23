@@ -13,20 +13,16 @@ module.exports = async function(deployer) {
   let dcc     = await Decentracraft.deployed();
   console.log("Decentracraft = " + dcc.address);
 
-  let mockrng = await MockRNG.deployed();
-  console.log("MockRNG = " + mockrng.address);
-  
-  let provablerng = await ProvableRNG.deployed();
-  console.log("ProvableRNG = " + ProvableRNG.address);
-
   let olddccWorld = await DecentracraftWorld.deployed();
   console.log("Old DecentracraftWorld = " + olddccWorld.address);
 
   if(deployer.network != "ropsten"){
+    let mockrng = await MockRNG.deployed();
     console.log("MockRNG = " + MockRNG.address);
     await deployer.deploy(DecentracraftWorld, Decentracraft.address, MockRNG.address);
   }
   else{
+    let provablerng = await ProvableRNG.deployed();
     console.log("ProvableRNG = " + ProvableRNG.address);
     await deployer.deploy(DecentracraftWorld, Decentracraft.address, ProvableRNG.address);
   }

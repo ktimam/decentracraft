@@ -36,7 +36,7 @@
     "ropsten": "truffle migrate --network ropsten",
     "dev": "next dev",
     "build": "next build",
-    "start": "cross-env NODE_ENV=production node server.js --rpc wss://ropsten.infura.io/ws/v3/963c4b374f2942338c281f97a61d8d98"
+    "start": "cross-env NODE_ENV=production node server.js"
   },
   "now": {
     "alias": "decentracraft"

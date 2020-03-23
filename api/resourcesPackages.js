@@ -14,7 +14,7 @@ module.exports = async function (req, res) {
     console.log("Entering resourcesPackages");
     //var player = req.body.player;
     // var accounts = await Contracts.web3.eth.getAccounts();
-    var user1 = Contracts.ownerAccount;//accounts[0];
+    // var user1 = Contracts.ownerAccount;//accounts[0];
     //console.log("Account 0 = " + user1);
 
     var decentracraftWorld = await Contracts.DecentracraftWorld;
@@ -28,21 +28,22 @@ module.exports = async function (req, res) {
     
     var length = await decentracraftWorld.methods.getResourcePackagesIndex().call(); 
 
-    console.log("items length = " + length);
+    // console.log("items length = " + length);
     for(var i=0; i < length; i++){
         var package = await decentracraftWorld.methods.resourcePackages(i).call();
         var owner = await package.owner;
+        var packageURI = await package.uri;
         var price = await package.price;
-        console.log("Package = " + package);
-        console.log("Owner " + owner);
-        console.log("price " + price);
+        // console.log("Package = " + package);
+        // console.log("Owner " + owner);
+        // console.log("price " + price);
 
         var resourcesCount = await decentracraftWorld.methods.getResourcesPackagesResourcesCount(i).call();
         
         var resourcesjson = {
             resources: []
         };
-        console.log("resourcesCount = " + resourcesCount);
+        // console.log("resourcesCount = " + resourcesCount);
         for(var r=0; r < resourcesCount; r++){
             var {_resourceID, _resourceSupply} = await decentracraftWorld.methods.getResourcesPackagesResource(i, r).call();
             resourcesjson.resources.push({ 
@@ -56,7 +57,7 @@ module.exports = async function (req, res) {
         var nftsjson = {
             nfts: []
         };
-        console.log("nftsCount = " + nftsCount);
+        // console.log("nftsCount = " + nftsCount);
         for(var r=0; r < nftsCount; r++){
             var {_nftID, _nftProbability, _nftSupply, _nftJSON, _nftURI} = 
                     await decentracraftWorld.methods.getResourcesPackagesNFT(i, r).call();
@@ -70,8 +71,7 @@ module.exports = async function (req, res) {
             });
         }
         
-        let uriname = "Resources Package " + i + ".json";
-        let uriurl  = ServerPublicURL + uriname;
+        let uriurl  = ServerPublicURL + packageURI;
 
         let uridata = await fetch(uriurl);
         let urijson = await uridata.json();

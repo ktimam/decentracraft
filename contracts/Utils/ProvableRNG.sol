@@ -3,20 +3,31 @@ pragma solidity ^0.5.11;
 import "./IRNGReceiver.sol";
 import "./IRandomGenerator.sol";
 import "./provableAPI.sol";
+import "./Ownable.sol";
 
 /**
     @dev Decentracraftworld manager
     Controls minting process
 */
-contract ProvableRNG is IRandomGenerator, usingProvable {
+contract ProvableRNG is Ownable, IRandomGenerator, usingProvable {
 
-    uint256 constant MAX_INT_FROM_BYTE = 99999;//256;
+    // uint256 constant MAX_INT_FROM_BYTE = 99999;//256;
+    uint256 constant MAX_NUMBER = 10000;
     uint256 constant NUM_RANDOM_BYTES_REQUESTED = 7;
+
+    uint256 GAS_FOR_CALLBACK = 400000;   
+
+    function setGasForCall(uint256 _gas) external ownerOnly {
+        GAS_FOR_CALLBACK = _gas;
+    }
 
     event LogNewProvableQuery(string description);
     event generatedRandomNumber(uint256 randomNumber);
 
     mapping (bytes32 => IRNGReceiver) callingMap;
+
+    function () external payable {
+    }
 
     constructor () public payable  { 
         provable_setProof(proofType_Ledger);
@@ -24,8 +35,7 @@ contract ProvableRNG is IRandomGenerator, usingProvable {
 
     function generateRandom() external payable returns (bytes32){
 
-        uint256 QUERY_EXECUTION_DELAY = 0;
-        uint256 GAS_FOR_CALLBACK = 200000;            
+        uint256 QUERY_EXECUTION_DELAY = 0;         
         bytes32 queryId = provable_newRandomDSQuery(QUERY_EXECUTION_DELAY, NUM_RANDOM_BYTES_REQUESTED, GAS_FOR_CALLBACK);
         callingMap[queryId] = IRNGReceiver(msg.sender);
         emit LogNewProvableQuery("Provable query was sent, standing by for the random number...");
@@ -54,8 +64,8 @@ contract ProvableRNG is IRandomGenerator, usingProvable {
              *          range of [0, ceiling - 1].
              *
              */
-            uint256 ceiling = (MAX_INT_FROM_BYTE ** NUM_RANDOM_BYTES_REQUESTED) - 1;
-            uint256 randomNumber = uint256(keccak256(abi.encodePacked(_result))) % ceiling;
+            // uint256 ceiling = (MAX_INT_FROM_BYTE ** NUM_RANDOM_BYTES_REQUESTED) - 1;
+            uint256 randomNumber = uint256(keccak256(abi.encodePacked(_result))) % MAX_NUMBER;
             emit generatedRandomNumber(randomNumber);
 
             callingMap[_queryId].__callback(_queryId, randomNumber);
